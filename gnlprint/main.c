@@ -6,7 +6,7 @@
 /*   By: rkergast <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/12/05 16:58:25 by rkergast          #+#    #+#             */
-/*   Updated: 2018/12/14 15:33:21 by rkergast         ###   ########.fr       */
+/*   Updated: 2018/12/10 16:44:26 by rkergast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,8 @@ int		main(void)
 	while (tmp == 1)
 	{
 		tmp = get_next_line(fd, line);
-		printf("%s\n", *line);
+		printf("LINE : |%s|\nRET : |%d|\n-----------------------------------------------\n", *line, tmp);
+		getchar();
 		i++;
 		free(*line);
 		*line = NULL;
