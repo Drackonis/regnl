@@ -1,93 +1,78 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   2get_next_line.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rkergast <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/12/05 16:39:03 by rkergast          #+#    #+#             */
-/*   Updated: 2018/12/14 15:22:13 by rkergast         ###   ########.fr       */
+/*   Created: 2018/12/17 17:05:18 by rkergast          #+#    #+#             */
+/*   Updated: 2018/12/17 19:20:53 by rkergast         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static int		check_error(int fd, char **line)
+char	*ft_strnclr(char *s, int i)
 {
-	if (fd < 0 || line == NULL || BUFF_SIZE < 1)
-		return (-1);
-	return (0);
+	char	*new;
+	int		j;
+
+	j = 0;
+	if (!s)
+		return (NULL);
+	new = ft_strnew(ft_strlen(s) - i);
+	while (s[i])
+		new[j++] = s[i++];
+	new[j] = '\0';
+	ft_strdel(&s);
+	return (new);
 }
 
-static int		check_buffer(char buf[BUFF_SIZE], char **tab,\
-		char **line, const int fd)
+char	*ft_strfreejoin(char *s1, char *s2)
 {
-	int		i;
-	char	*tmp;
+	char	*new;
 
-	i = 0;
-	tmp = ft_strnew(BUFF_SIZE);
-	while (buf[i])
-	{
-		if (buf[i] == '\n')
-		{
-			if (tab[fd])
-				tmp = tab[fd];
-			tab[fd] = (ft_strcpy(ft_strnew(BUFF_SIZE - i), buf + i + 1));
-			if (!*line)
-				*line = ft_strncat(ft_strnew(i), buf, i);
-			else
-				*line = ft_strjoin(*line, ft_strncat(ft_strnew(i + 1), buf, i));
-			if (tmp)
-				free(tmp);
-			return (1);
-		}
-		i++;
-	}
-	return (0);
+	if (!s2)
+		return (NULL);
+	if (!s1)
+		return (ft_strdup(s2));
+	new = ft_strjoin(s1, s2);
+	ft_strdel(&s1);
+	return (new);
 }
 
-static	int		get_buffer(char **tab, const int fd, char buf[BUFF_SIZE])
-{
-	int			ret;
-
-	ret = 1;
-	if (tab[fd] != NULL && ft_strlen(tab[fd]) > 0)
-	{
-		ft_strncpy(buf, tab[fd], BUFF_SIZE);
-		free(tab[fd]);
-		tab[fd] = NULL;
-	}
-	else
-	{
-		ret = read(fd, buf, BUFF_SIZE);
-		buf[ret] = '\0';
-	}
-	return (ret);
-}
-
-int				get_next_line(const int fd, char **line)
+int		get_next_line(const int fd, char **line)
 {
 	static char		*tab[256];
-	char			buf[BUFF_SIZE];
+	char			*buf;
 	int				ret;
-	int				b;
+	int				i;
 
 	ret = 0;
-	if (check_error(fd, line) == -1)
+	i = 0;
+	if (fd < 0 || line == NULL || !(buf = ft_strnew(BUFF_SIZE)))
 		return (-1);
-	ret = get_buffer(tab, fd, buf);
-	if (ret == 0)
+	while ((ret = read(fd, buf, BUFF_SIZE)))
+	{
+		buf[ret] = '\0';
+		tab[fd] = ft_strfreejoin(tab[fd], buf);
+		if (ft_strchr(buf, '\n'))
+			break ;
+	}
+	ft_strdel(&buf);
+	if (ret < BUFF_SIZE && !ft_strlen(tab[fd]))
 		return (0);
-	b = check_buffer(buf, tab, line, fd);
-	if (ret != 0 && b == 1)
-		return (1);
-	if (!*line)
-		*line = ft_strsub(buf, 0, BUFF_SIZE);
+	while (tab[fd][i] != '\n' && tab[fd][i] != '\0')
+		i++;
+	if (i == (int)ft_strlen(tab[fd]))
+	{
+		*line = ft_strdup(tab[fd]);
+		ft_strclr(tab[fd]);
+	}
 	else
-		*line = ft_strjoin(*line, buf);
-	get_next_line(fd, line);
-	if (ret > 1)
-		ret = 1;
-	return (ret);
+	{
+		*line = ft_strsub(tab[fd], 0, i);
+		tab[fd] = ft_strnclr(tab[fd], i + 1);
+	}
+	return (1);
 }
